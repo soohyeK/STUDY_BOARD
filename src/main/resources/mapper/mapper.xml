@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper">
+	
+	<resultMap type="map" id="maplist">
+	<result column="seq" property="seq"/>
+	<result column="mem_id" property="memId"/>
+	<result column="mem_name" property="memName"/>
+	<result column="board_subject" property="boardSubject"/>
+	<result column="board_content" property="boardContent"/>
+	<result column="reg_date" property="regDate"/>
+	<result column="upt_date" property="uptDate"/>
+	<result column="view_cnt" property="viewCnt"/>
+	</resultMap>
+	
+	
+	<sql id="searchSql">
+		<choose>
+			<when test ="seType=='seMem'">
+				AND (MEM_ID LIKE  '%'||#{seValue}||'%' 
+				OR MEM_NAME LIKE  '%'||#{seValue}||'%')
+			</when>
+
+			<when test ="seType=='seSub'">
+				AND BOARD_SUBJECT LIKE  '%'||#{seValue}||'%'
+			</when>
+			<when test ="seType=='seCon'">
+				AND (BOARD_SUBJECT LIKE  '%'||#{seValue}||'%'
+				OR BOARD_CONTENT LIKE  '%'||#{seValue}||'%')
+			</when>			
+		</choose>
+		<if test="seDateS != '' and seDateS != null">
+			AND TO_CHAR(REG_DATE, 'yyyy-MM-dd') <![CDATA[>=]]> #{seDateS}
+		    AND TO_CHAR(REG_DATE, 'yyyy-MM-dd') <![CDATA[<=]]> #{seDateE}
+		</if>
+	</sql>
+	
+	<select id="list" parameterType="map" resultMap="maplist">
+	SELECT
+		RNUM
+		,SEQ
+		,MEM_ID
+		,MEM_NAME
+		,BOARD_SUBJECT
+		,BOARD_CONTENT
+		,REG_DATE
+		,UPT_DATE
+		,VIEW_CNT
+	FROM(
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY SEQ DESC)RNUM
+				,SEQ
+				,MEM_ID
+				,MEM_NAME
+				,BOARD_SUBJECT
+				,BOARD_CONTENT
+				,REG_DATE
+				,UPT_DATE
+				,VIEW_CNT
+			FROM BOARD_STUDY
+			WHERE 1=1
+			<include refid="searchSql"></include>
+		)
+		WHERE RNUM BETWEEN (#{pageNo}*#{listSize})-(#{listSize}-1) AND (#{pageNo}*#{listSize})
+	</select>
+	
+	
+	<select id="count" resultType="integer" parameterType="map">
+		SELECT COUNT(SEQ)
+		FROM BOARD_STUDY
+		WHERE 1=1
+		<include refid="searchSql"></include>
+	</select>
+	
+		
+	<select id="listSeq" resultType="integer">
+		SELECT 
+			nvl(max(seq),0)+1 
+		FROM BOARD_STUDY
+	</select>
+	
+	
+	<insert id="insert" parameterType="map">
+	INSERT INTO BOARD_STUDY(
+		SEQ
+		,MEM_ID
+		,MEM_NAME
+		,BOARD_SUBJECT
+		,BOARD_CONTENT
+		,REG_DATE
+		,VIEW_CNT
+	)VALUES(
+		#{seq}
+		,#{memId}
+		,#{memName}
+		,#{boardSubject}
+		,#{boardContent}
+		,sysdate
+		,0
+	)
+	</insert>
+	
+	
+	<insert id="fileInsert" parameterType="map" >
+	INSERT INTO FILE_STUDY_TABLE(
+		FILE_SEQ
+		,REAL_NAME
+		,SAVE_NAME
+		,REG_DATE
+		,SAVE_PATH
+		,LIST_SEQ
+	)VALUES(
+		(select nvl(max(file_seq),0)+1 from FILE_STUDY_TABLE)
+		,#{realFile}
+		,#{saveFile}
+		,sysdate
+		,#{filePath}
+		,#{listSeq}
+	)
+	</insert>
+	
+	
+	<select id="detail" parameterType="integer" resultMap="maplist">
+	SELECT	SEQ
+		, MEM_ID
+		, MEM_NAME
+		, BOARD_SUBJECT
+		, BOARD_CONTENT
+		, REG_DATE
+	FROM BOARD_STUDY
+	WHERE SEQ = #{seq}
+	</select>
+	
+	
+	<update id="update" parameterType="map">
+		UPDATE BOARD_STUDY
+		   SET MEM_ID = #{memId}
+			,MEM_NAME = #{memName}
+			,BOARD_SUBJECT = #{boardSubject}
+			,BOARD_CONTENT = #{boardContent}
+			,UPT_DATE = sysdate
+		 WHERE SEQ = #{seq} 
+	</update>
+	
+	
+	<delete id="delete" parameterType="list">
+		DELETE 
+			FROM BOARD_STUDY
+		WHERE SEQ IN (
+		    <foreach collection="list" item="seq" index="seq" separator=",">
+     		 #{seq}
+    		</foreach>
+    		)
+	</delete>
+	
+</mapper>
