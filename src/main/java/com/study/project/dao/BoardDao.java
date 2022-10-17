@@ -21,5 +21,7 @@ public interface BoardDao {
 
 	int fileInsert(Map<String, Object> fileMap);
 
+	List<Map<String, Object>> fileDetail(int seq);
+
 
 }

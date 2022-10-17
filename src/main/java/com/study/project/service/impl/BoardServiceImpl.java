@@ -63,5 +63,11 @@ public class BoardServiceImpl implements BoardService{
 		return boardDao.fileInsert(fileMap);
 	}
 
+	@Override
+	public List<Map<String, Object>> fileDetail(int seq) {
+		// TODO Auto-generated method stub
+		return boardDao.fileDetail(seq);
+	}
+
 
 }

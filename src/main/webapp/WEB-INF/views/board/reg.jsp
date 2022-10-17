@@ -48,7 +48,7 @@ function fncNameChk(fileInput){
 }
 
 </script>
-<title>글작성</title>
+<title>글작성</title> 
 </head>
 <body>
 
@@ -57,22 +57,27 @@ function fncNameChk(fileInput){
 	ID: <input type="text" name="memId" value=${detailMap.memId }><br>
 	제목: <input type="text" name="boardSubject" value=${detailMap.boardSubject }><br>
 	내용:<textarea rows="5" cols="30" name="boardContent">${detailMap.boardContent }</textarea><br>
-	<div id="fileDv">
-	<input type="button" name="fileAdd" id="fileAdd" value=파일추가>
-	</div>
 	
 	
 	<div>
 		<c:choose>
 			<c:when test="${empty detailMap }">
+				<div id="fileDv">
+			 		<input type="button" name="fileAdd" id="fileAdd" value=파일추가>
+				</div>
 			 	<input type="submit" value="등록" onclick="javascript:form.action='/insert';">
 			</c:when>
 			<c:otherwise>
+				<div id="fileDetail">
+					업로드한 파일: <br>
+					<c:forEach items="${fileMap }" var="fileList">
+						<a href="down?realName=${fileList.REAL_NAME }&saveName=${fileList.SAVE_NAME }">${fileList.REAL_NAME }</a><br>
+					</c:forEach>
+				</div>
 				<input type ="hidden" name="seq" id="seq" value=${detailMap.seq }>
 				<input type="submit" value="수정" onclick="javascript:form.action='/update';">
 			</c:otherwise>
 		</c:choose>
-	
 	</div>
 
 	<input type="button" onclick="location.href='/list'" value="취소">

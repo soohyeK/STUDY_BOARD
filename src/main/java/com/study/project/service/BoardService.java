@@ -21,4 +21,6 @@ public interface BoardService {
 
 	int fileInsert(Map<String, Object> fileMap);
 
+	List<Map<String, Object>> fileDetail(int seq);
+
 }

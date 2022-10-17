@@ -72,4 +72,11 @@ public class BoardDaoImpl implements BoardDao{
 	}
 
 
+	@Override
+	public List<Map<String, Object>> fileDetail(int seq) {
+		// TODO Auto-generated method stub
+		return sqlSession.selectList("mapper.fileDetail", seq);
+	}
+
+
 }

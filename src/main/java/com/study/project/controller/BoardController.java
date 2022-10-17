@@ -1,7 +1,10 @@
 package com.study.project.controller;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,9 +13,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -58,7 +64,7 @@ public class BoardController {
 	}
 	
 	//글 등록+파일 업로드
-	private static final String filePath = "D:/pic/";  
+	private static final String savePath = "D:/pic/";  
     @RequestMapping(value = "insert", method = RequestMethod.POST)
     public String insert(@RequestParam Map<String,Object> map, 
     		MultipartHttpServletRequest mReq) throws IllegalStateException, IOException {
@@ -74,13 +80,13 @@ public class BoardController {
     		String realName = mFile.getOriginalFilename();
     		String saveName = UUID.randomUUID() + "_" + realName;
     		
-    		mFile.transferTo(new File(filePath + saveName));
+    		mFile.transferTo(new File(savePath + saveName));
     	
 	    	//파일정보MAP
 	    	Map<String, Object> fileMap = new HashMap<String, Object>();
-	    	fileMap.put("filePath", filePath);
-	    	fileMap.put("realFile", realName);
-	    	fileMap.put("saveFile", saveName);
+	    	fileMap.put("savePath", savePath);
+	    	fileMap.put("realName", realName);
+	    	fileMap.put("saveName", saveName);
 	    	fileMap.put("listSeq", seq);
 	    	
 	    	boardService.fileInsert(fileMap); 
@@ -96,15 +102,52 @@ public class BoardController {
     	}
     }
     
-    //상세보기
+    //상세보기+파일
  	@RequestMapping("detail")
  	public String read(@RequestParam("seq") int seq, Model model) {
  		
  		Map<String,Object> detailMap = boardService.detail(seq);
  		model.addAttribute("detailMap",detailMap);
+ 		
+ 		List<Map<String,Object>> fileMap = boardService.fileDetail(seq);
+ 		model.addAttribute("fileMap",fileMap);
  				
  		return "board/reg";
  	}
+ 	
+ 	//파일 다운로드
+ 	@RequestMapping("down")
+    public void down(String realName, String saveName,
+          HttpServletResponse response,
+          HttpServletRequest request) throws Exception {   
+ 		
+ 		try {
+	 		//브라우저 확인(한글깨짐방지)
+	        String header = request.getHeader("User-Agent");
+	        boolean b = header.indexOf("MSIE") > -1;
+	        String fileName = null; 
+		        if (b) {
+		        	fileName = URLEncoder.encode(realName,"UTF-8");
+		        } else {
+		        	fileName = new String(realName.getBytes("UTF-8"),"iso-8859-1");
+		        }
+		        
+	        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+	        response.setHeader("Content-Transter-Encoding", "binary"); 
+	        
+	        FileInputStream fileInputStream = new FileInputStream(savePath + saveName);
+	        OutputStream out = response.getOutputStream();
+	        
+	        int read = 0;
+	       		byte[] buffer = new byte [1024];
+	       		while ((read = fileInputStream.read(buffer)) != -1){
+	       			out.write(buffer, 0, read);
+	       		}
+ 		}catch (Exception e) {
+ 			throw new Exception("download error");
+ 		}
+    }
+ 	
  	
 	//글 수정
     @RequestMapping(value = "update", method = RequestMethod.POST)
