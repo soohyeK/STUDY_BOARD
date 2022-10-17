@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -109,6 +108,7 @@ public class BoardController {
  		Map<String,Object> detailMap = boardService.detail(seq);
  		model.addAttribute("detailMap",detailMap);
  		
+ 		//하나씩 파일을 올렸으니 리스트로 가지고오기
  		List<Map<String,Object>> fileMap = boardService.fileDetail(seq);
  		model.addAttribute("fileMap",fileMap);
  				
