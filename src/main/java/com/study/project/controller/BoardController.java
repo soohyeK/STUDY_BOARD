@@ -143,9 +143,11 @@ public class BoardController {
 	       		while ((read = fileInputStream.read(buffer)) != -1){
 	       			out.write(buffer, 0, read);
 	       		}
+	     	fileInputStream.close();
  		}catch (Exception e) {
  			throw new Exception("download error");
  		}
+
     }
  	
  	
